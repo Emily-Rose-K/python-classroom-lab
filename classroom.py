@@ -1,13 +1,15 @@
+import copy
+
 class Assignment:
-    def __init__(self, name, github_url=""):
+    def __init__(self, name, github_url):
         self.name = name
         self.github_url = github_url
         self.completed = False
         self.grade = None
-    
+
     def mark_done(self, grade):
-        self.completed = True
         self.grade = grade
+        self.completed = True
 
 class Student:
     def __init__(self, name):
@@ -18,39 +20,56 @@ class Student:
     def assign_homework(self, assignment):
         self.pending_homeworks.append(assignment)
 
-    def complete_homework(self, name, grade):
-        for i in range(len(self.pending_homeworks)):
-            homework = self.pending_homeworks[i]
-            if homework.name == name:
-                homework.mark_done(grade)
-                self.completed_homeworks.append(self.pending_homeworks.pop(i))
-                break
+    def complete_homework(self, assignName, grade):
+        for assign in self.pending_homeworks:
+            if assign.name == assignName:
+                assign.mark_done(grade)
+                self.completed_homeworks.append(assign)
+                self.pending_homeworks.remove(assign)
 
     def print_outstanding_homeworks(self):
-        missing_hw = []
-        for homework in self.pending_homeworks:
-            missing_hw.append(homework.name)
-        if len(missing_hw) == 0:
-            print(f'{self.name} has no outstanding homeworks!')
-        else:
-            print(f'{self.name} still needs to turn in', missing_hw)
+        for assign in self.pending_homeworks:
+            print(f"Assignment outstanding for {self.name}: {assign.name}")
 
 class SeiClass:
     def __init__(self, name):
         self.name = name
         self.students = []
-    
+
     def add_student(self, student):
         self.students.append(student)
 
-    def assign_homework(self, assignment):
-        for student in self.students:
-            student.assign_homework(assignment)
+    def assign_homework(self, assign):
+        for each in self.students:
+            each.assign_homework(copy.deepcopy(assign))
 
+    def get_students_grade(self, student):
+        sumScores = 0
+        for each in student.completed_homeworks:
+            sumScores += each.grade
+        try:
+            grade = sumScores / len(student.completed_homeworks)
+            print(f"Grade average for {student.name}: {grade}")
+            return grade
+        except:
+            return None
+
+    def print_avg_grade(self):
+        sumScores = 0
+        studentsWithGrades = 0
+        for each in self.students:
+            studentAvg = self.get_students_grade(each)
+            if (studentAvg != None):
+                sumScores += studentAvg
+                studentsWithGrades += 1
+        if studentsWithGrades == 0:
+            print('No grades yet')
+        else: print("Average Score:", (sumScores/studentsWithGrades))
 
 henry = Student('Henry')
 sarah = Student('Sarah')
 mike = Student('Mike')
+
 print(f"""Student:
     Name: {henry.name}
     Pending: {henry.pending_homeworks}
@@ -61,16 +80,17 @@ sei26.add_student(henry)
 sei26.add_student(sarah)
 sei26.add_student(mike)
 
-
 assignment1 = Assignment('Bounty Hunters', 'https://github.com/WDI-SEA/mongoose-practice')
-print(f"""Assignment 1: 
-    Name: {assignment1.name} 
-    Url: {assignment1.github_url} 
-    Completed: {assignment1.completed} 
-    Grade: {assignment1.grade}""")
 
+print(f"""Assignment 1:
+    Name: {assignment1.name}
+    Url: {assignment1.github_url}
+    Completed: {assignment1.completed}
+    Grade: {assignment1.grade}""")
 print("Assigned a homework to the class")
+
 sei26.assign_homework(assignment1)
+
 print(f"""Student:
     Name: {henry.name}
     Pending: {henry.pending_homeworks}
@@ -86,3 +106,5 @@ sarah.complete_homework('Bounty Hunters', 95)
 henry.print_outstanding_homeworks()
 sarah.print_outstanding_homeworks()
 mike.print_outstanding_homeworks()
+
+sei26.print_avg_grade()
